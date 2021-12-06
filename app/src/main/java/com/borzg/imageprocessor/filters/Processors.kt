@@ -7,31 +7,43 @@ interface BitmapProcessor {
     operator fun invoke(bitmap: Bitmap): Bitmap
 }
 
-sealed interface Processor : BitmapProcessor {
+interface Processor : BitmapProcessor {
 
-    sealed interface OneWayProcessor : Processor {
+    interface PixelByPixelProcessor : Processor {
 
-        fun process(color: Int): Int
+        fun process(pixelColor: Int): Int
 
         override fun invoke(bitmap: Bitmap): Bitmap =
             bitmap.oneWayProcessing(::process)
 
-        object BlackAndWhite : OneWayProcessor {
-            override fun process(color: Int): Int =
-                color.toBlackAndWhite()
+        object BlackAndWhite : PixelByPixelProcessor {
+            override fun process(pixelColor: Int): Int =
+                pixelColor.toBlackAndWhite()
         }
 
-        object Negative : OneWayProcessor {
-            override fun process(color: Int): Int =
-                color.toNegative()
+        object HardBlackAndWhite : PixelByPixelProcessor {
+            override fun process(pixelColor: Int): Int =
+                pixelColor.toHardBlackAndWhite()
+        }
+
+        object Negative : PixelByPixelProcessor {
+            override fun process(pixelColor: Int): Int =
+                pixelColor.toNegative()
+        }
+
+        class LeaveAlone(
+            private val rgb: RGB
+        ) : PixelByPixelProcessor {
+            override fun process(pixelColor: Int): Int =
+                pixelColor.leaveAlone(rgb)
         }
 
         class ChangeColorIntensity(
             private val delta: Int,
             private val rgb: RGB
-        ) : OneWayProcessor {
-            override fun process(color: Int): Int =
-                color.changeIntensity(delta, rgb)
+        ) : PixelByPixelProcessor {
+            override fun process(pixelColor: Int): Int =
+                pixelColor.changeIntensity(delta, rgb)
         }
     }
 }
